@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>后台-控制台</title>
+    {{include "./common/link.html"}}
+</head>
+
+<body>
+    <div class="layui-layout layui-layout-admin">
+        <!-- header -->
+        {{include "./common/header.html"}}
+
+        <!-- side -->
+        {{include "./common/side.html"}}
+
+        <div class="layui-body">
+            <!-- 内容主体区域 -->
+            <div style="padding: 15px;" id="charts">
+                <div id="cateChart"></div>
+                <div id="artChart"></div>
+            </div>
+        </div>
+
+        <!-- footer -->
+        {{include "./common/footer.html"}}
+    </div>
+
+    {{include "./common/script.html"}}
+    <script src="https://cdn.bootcdn.net/ajax/libs/echarts/5.0.1/echarts.js"></script>
+    <script>
+        $.get('/catecount', res => {
+            let cate_names = [];
+            let counts = [];
+            res.forEach(v => {
+                cate_names.push(v.cate_name);
+                counts.push(v.total);
+            });
+            initChart($('#cateChart')[0], '文章分类统计表', cate_names, counts, 'bar');
+        });
+
+        $.get('/artcount', res => {
+            let month = [];
+            let counts = [];
+            res.forEach(v => {
+                month.push(v.month + '月');
+                counts.push(v.total);
+            });
+            initChart($('#artChart')[0], '上年每月文章统计表', month, counts, 'line');
+        });
+
+        function initChart(elem, title, cates, totals, type) {
+            let myChart = echarts.init(elem);
+
+            // 指定图表的配置项和数据
+            let option = {
+                title: {
+                    text: title
+                },
+                tooltip: {
+                    show: true,
+                    axisPointer: {
+                        type: "cross"
+                    }
+                },
+                xAxis: {
+                    data: cates
+                },
+                yAxis: {},
+                series: [{
+                    name: '分类',
+                    type: type,
+                    data: totals,
+                    label: {
+                        show: true,
+                        fontSize: 14
+                    }
+                }]
+            };
+
+            // 使用刚指定的配置项和数据显示图表。
+            myChart.setOption(option);
+        }
+
+        // 导航依赖 element 模块，表单依赖 form 模块，表格依赖 table 模块
+        layui.use('element', function () {
+            // let element = layui.element;
+        });
+    </script>
+</body>
+
+</html>

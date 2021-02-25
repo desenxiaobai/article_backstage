@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>后台-文章管理-文章分类</title>
+    {{include "./common/link.html"}}
+</head>
+
+<body>
+    <div class="layui-layout layui-layout-admin">
+        <!-- header -->
+        {{include "./common/header.html"}}
+
+        <!-- side -->
+        {{include "./common/side.html"}}
+
+        <div class="layui-body">
+            <!-- 内容主体区域 -->
+            <div style="padding: 15px;">
+                <h2 style="overflow: hidden;">
+                    <span>文章分类</span>
+                    <button class="layui-btn add-btn" title="添加分类" href="/cate_add">
+                        <i class="layui-icon">&#xe608;</i> 添加
+                    </button>
+                </h2>
+                <table class="layui-table">
+                    <colgroup>
+                        <col width="100">
+                        <col width="200">
+                    </colgroup>
+                    <thead>
+                        <tr>
+                            <th>分类ID</th>
+                            <th>分类名称</th>
+                            <th>添加时间</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- footer -->
+        {{include "./common/footer.html"}}
+    </div>
+
+    {{include "./common/script.html"}}
+    <script>
+        // 导航依赖 element 模块，表单依赖 form 模块，表格依赖 table 模块
+        layui.use(['layer', 'element'], function () {
+            // 初始化分类
+            initCategory();
+        });
+
+        function initCategory() {
+            $.ajax({
+                url: '/getCate'
+            }).then(({ data, message }) => {
+                if (data) return renderData(data);
+                layer.msg(message);
+            });
+        };
+
+        function renderData(data) {
+            let tbodyHtml = '';
+            data.forEach((value, index) => {
+                let { cate_id, cate_name, add_date } = value;
+                add_date = util.data_format(add_date);
+                tbodyHtml += `<tr>
+                    <td>${index + 1}</td>
+                    <td class="cate_name">${cate_name}</td>
+                    <td>${add_date}</td>
+                    <td>
+                        <div class="layui-btn-group">
+                            <button title='编辑' cate_id='${cate_id}' type="button" class="layui-btn layui-btn-x edit"><i class="layui-icon">&#xe642;</i></button>
+                            <button title='删除' cate_id='${cate_id}' type="button" class="layui-btn layui-btn-danger layui-btn-x del"><i class="layui-icon">&#xe640;</i></button>
+                        </div>
+                    </td>
+                </tr>`;
+            });
+            $('tbody').html(tbodyHtml);
+        }
+
+        $('tbody').on('click', '.edit', function () {
+            let cate_id = $(this).attr('cate_id');
+            let cateNameEle = $(this).parents('td').siblings('.cate_name');
+            let oldcatename = cateNameEle.html();
+            let newHtml = `<input type="text" value="${oldcatename}" required="" lay-verify="required" class="layui-input cate_name_input">`;
+            cateNameEle.html(newHtml);
+            $('.cate_name_input').select();
+            $('.cate_name_input').on('blur', function () {
+                let cate_name = $(this).val().trim();
+                if (cate_name !== oldcatename) {
+                    $.ajax({
+                        type: 'post',
+                        url: '/cate_edit',
+                        data: { cate_id, cate_name }
+                    }).then(res => {
+                        layer.msg(res.message);
+                    });
+                }
+                cateNameEle.html(cate_name);
+            })
+            return;
+        });
+
+
+        $('tbody').on('click', '.del', function () {
+            let cate_id = $(this).attr('cate_id');
+            let _this = $(this);
+            layer.confirm('此操作将删除该分类的所有文章，确定要删除吗？', {
+                btn: ['删除', '取消']
+            }, () => {
+                $.ajax({
+                    type: 'post',
+                    url: '/cate_del',
+                    data: { cate_id }
+                }).then(res => {
+                    layer.closeAll();
+                    layer.msg(res.message);
+                    if (!res.code) {
+                        _this.parents('tr').remove();
+                        $.each($('tbody tr').find('td:eq(0)'), (index, ele) => {
+                            $(ele).html(index + 1);
+                        });
+                    }
+                }).catch((err) => {
+                    layer.closeAll();
+                    layer.msg('删除失败');
+                });
+            });
+        });
+
+        $('.add-btn').on('click', function () {
+            layer.prompt({
+                title: '输入分类名称',
+                formType: 3
+            }, function (text, index) {
+                $.ajax({
+                    type: 'post',
+                    url: '/cate_add',
+                    data: { cate_name: text }
+                }).then(res => {
+                    layer.msg(res.message);
+                    location.href = '/cates';
+                });
+            });
+        });
+    </script>
+</body>
+
+</html>

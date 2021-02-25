@@ -1,0 +1,20 @@
+{
+    "delsuccess": { "code": 0, "message": "删除成功" },
+    "delfail": { "code": 1, "message": "获取失败，请刷新重试" },
+    "paramerr": { "code": 2, "message": "参数错误，请刷新重试" },
+    "serverbusy": { "code": 3, "message": "服务器繁忙，请稍后重试" },
+    "loadsuccess": { "code": 0, "message": "加载完成" },
+    "addsuccess": { "code": 0, "message": "添加成功" },
+    "addfail": { "code": 5, "message": "添加失败，请重新尝试" },
+    "editsuccess": { "code": 0, "message": "编辑成功" },
+    "editfail": { "code": 6, "message": "编辑失败，请重新尝试" },
+    "getfail": { "code": 4, "message": "获取失败，请刷新重试" },
+    "initfail": { "code": 7, "message": "初始化分类失败" },
+    "operatesuccess": {"code": 0, "message": "操作成功"},
+    "operatefail": {"code": 8, "message": "操作成功"},
+    "loginfail": {"code": 9, "message": "用户名或密码错误"},
+    "usernrepeat": {"code": 10, "message": "用户名已被注册"},
+    "registersuccess": {"code": 0, "message": "注册成功"},
+    "editpwdsuccess": {"code": 0, "message": "重置成功"},
+    "editpwdfail": {"code": 11, "message": "密码错误"}
+}

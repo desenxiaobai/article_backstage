@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>后台-文章管理-添加文章</title>
+    {{include "./common/link.html"}}
+</head>
+
+<body>
+    <div class="layui-layout layui-layout-admin">
+        <!-- header -->
+        {{include "./common/header.html"}}
+
+        <!-- side -->
+        {{include "./common/side.html"}}
+
+        <div class="layui-body">
+            <!-- 内容主体区域 -->
+            <div style="padding: 15px;">
+                <h2>添加文章</h2>
+                <form class="layui-form">
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">文章标题</label>
+                        <div class="layui-input-inline">
+                            <input type="text" name="art_title" required lay-verify="required" autocomplete="off"
+                                class="layui-input">
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">封面</label>
+                        <button type="button" class="layui-btn" id="upload_dp">
+                            <i class="layui-icon">&#xe67c;</i>上传图片
+                        </button>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">预览</label>
+                        <input type="hidden" name="cover" value="" id="cover">
+                        <img src="" alt="暂无图片" class="preview">
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">作者</label>
+                        <div class="layui-input-inline">
+                            <input type="number" name="author" required lay-verify="required" autocomplete="off"
+                                class="layui-input">
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">所属分类</label>
+                        <div class="layui-input-inline">
+                            <select name="category" lay-verify="required">
+                            </select>
+                        </div>
+                    </div>
+                    <div class="layui-form-item layui-form-text">
+                        <label class="layui-form-label">详情描述</label>
+                        <div class="layui-input-block">
+                            <div id="content"></div>
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <div class="layui-input-block">
+                            <button class="layui-btn" lay-submit lay-filter="formDemo">添加</button>
+                            <button type="reset" class="layui-btn layui-btn-primary reset-btn">重置</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- footer -->
+        {{include "./common/footer.html"}}
+    </div>
+
+    {{include "./common/script.html"}}
+    <script src="/public/js/wangEditor.js"></script>
+    <script>
+        const E = window.wangEditor;
+        const editor = new E('#content');
+        editor.config.uploadImgShowBase64 = true;
+        editor.create();
+
+        // 导航依赖 element 模块，表单依赖 form 模块，表格依赖 table 模块
+        layui.use(['element', 'form', 'layer', 'upload'], function () {
+            let form = layui.form;
+            let upload = layui.upload;
+
+            upload.render({
+                elem: '#upload_dp' //绑定元素
+                , url: '/upload' //上传接口
+                , data: {
+                    oldFile (){
+                        return $('#cover').val();
+                    }
+                }
+                , done: function ({ message, src }) {
+                    //上传完毕回调
+                    if (!src) return layer.msg(message);
+                    $('.preview').attr('src', src).addClass('preview_img');
+                    $('#cover').val(src);
+                }
+            });
+
+            form.on('submit(formDemo)', function ({ elem, field }) {
+                if (!field.cover) {
+                    layer.msg('请上传封面');
+                    return false;
+                }
+                if (!editor.txt.html()) {
+                    layer.msg('请输入详情描述');
+                    return false;
+                }
+                let oldHtml = $(elem).html();
+                $(elem).addClass('layui-btn-disabled').html('添加中...');
+                field.content = editor.txt.html();
+                $.ajax({
+                    type: 'post',
+                    url: '/add_art',
+                    data: field
+                }).then(({ code, message }) => {
+                    $(elem).removeClass('layui-btn-disabled').html(oldHtml);
+                    layer.msg(message);
+                    if (!code) location.href = '/article';
+                });
+                return false;
+            });
+        });
+
+        $.ajax({
+            url: '/getCate'
+        }).then(({ data, message }) => {
+            if (data) return initCate(data);
+            layer.msg(message);
+        });
+
+        function initCate(data) {
+            let cateHtml = '<option value=""></option>';
+            data.forEach(v => {
+                cateHtml += `<option value="${v.cate_id}">${v.cate_name}</option>`;
+            });
+            $('select[name="category"]').html(cateHtml);
+        }
+    </script>
+</body>
+
+</html>

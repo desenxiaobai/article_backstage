@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>后台-登录</title>
+    <link rel="stylesheet" href="/public/css/login.css">
+</head>
+
+<body>
+    <div class="cont">
+        <div class="form sign-in">
+            <h2>Welcome back,</h2>
+            <label>
+                <span>用户名</span>
+                <input type="text" id="login_usern" />
+            </label>
+            <label>
+                <span>密码</span>
+                <input type="password" id="login_pwd" />
+            </label>
+            <p class="forgot-pass">忘记密码？</p>
+            <button type="button" class="submit" id="login">登录</button>
+            <button type="button" class="fb-btn">Connect with <span>facebook</span></button>
+        </div>
+        <div class="sub-cont">
+            <div class="img">
+                <div class="img__text m--up">
+                    <h2>New here?</h2>
+                    <p>注册并发现大量的新机会！</p>
+                </div>
+                <div class="img__text m--in">
+                    <h2>One of us?</h2>
+                    <p>如果您已经有一个帐户，只需登录。我们很想念您！</p>
+                </div>
+                <div class="img__btn">
+                    <span class="m--up">注册</span>
+                    <span class="m--in">登录</span>
+                </div>
+            </div>
+            <div class="form sign-up">
+                <h2>Time to feel like home,</h2>
+                <label>
+                    <span>用户名</span>
+                    <input type="text" id="register_usern" />
+                </label>
+                <label>
+                    <span>密码</span>
+                    <input type="password" id="register_pwd" />
+                </label>
+                <label>
+                    <span>确认密码</span>
+                    <input type="password" id="repeat_pwd" />
+                </label>
+                <button type="button" class="submit" id="register">注册</button>
+                <button type="button" class="fb-btn">Join with <span>facebook</span></button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/public/js/jquery-3.5.1.js"></script>
+    <script src="/public/layui/layui.all.js"></script>
+    <script>
+        $('.img__btn').on('click', function () {
+            $('.cont').toggleClass('s--signup');
+        });
+        let layer = layui.layer;
+        $('#login').on('click', function () {
+            let username = $('#login_usern').val().trim();
+            let password = $('#login_pwd').val().trim();
+            if (!username || !password) return layer.msg('用户名/密码不能为空');
+            let index = layer.load(1, {
+                shade: [0.1, '#333'] //0.1透明度的白色背景
+            });
+            $.post('/checklogin', { username, password }, (res) => {
+                layer.close(index);
+                if (res.message) return layer.msg(res.message);
+                localStorage.setItem('username', res.username);
+                localStorage.setItem('avatar', res.avatar);
+                localStorage.setItem('nickname', res.nickname);
+                location.href = '/';
+            }, 'json');
+        });
+        $('#register').on('click', function () {
+            let username = $('#register_usern').val().trim();
+            let password = $('#register_pwd').val().trim();
+            let repwd = $('#repeat_pwd').val().trim();
+            if (!username || !password || !repwd) {
+                return layer.msg('用户名/密码/确认密码不能为空');
+            }
+            let usernReg = /^\w{4,16}$/.test(username);
+            let pwdReg = /^\w{6,16}$/.test(password);
+            if (!usernReg) {
+                return layer.msg('用户名必须为4-16个字母/数字/下划线组成');
+            }
+            if (!pwdReg) {
+                return layer.msg('密码必须为6-16位字母/数字/下划线组成');
+            }
+            if (repwd !== password) return layer.msg('两次密码不一致');
+            $.post('/registercheck', { username, password }, res => {
+                layer.msg(res.message);
+                if (!res.code) location.reload();
+            }, 'json');
+        });
+    </script>
+</body>
+
+</html>

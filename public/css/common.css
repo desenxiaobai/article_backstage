@@ -1,0 +1,127 @@
+#logo {
+	font-size: 25px;
+	color: #8fbcff;
+}
+
+.layui-body h2 {
+	height: 40px;
+}
+
+.layui-nav .layui-this:after,
+.layui-nav-bar,
+.layui-nav-tree .layui-nav-itemed:after,
+.layui-nav .layui-nav-child dd.layui-this a,
+.layui-nav-child dd.layui-this,
+.layui-nav-tree .layui-nav-bar,
+.layui-nav-tree .layui-nav-child dd.layui-this,
+.layui-nav-tree .layui-nav-child dd.layui-this a,
+.layui-nav-tree .layui-this,
+.layui-nav-tree .layui-this > a,
+.layui-nav-tree .layui-this > a:hover,
+.layui-btn,
+.layui-form-checked span,
+.layui-form-checked:hover span,
+.layui-form-onswitch,
+.layui-form-select dl dd.layui-this,
+.layui-laypage .layui-laypage-curr .layui-laypage-em,
+.layui-form-checked[lay-skin="primary"] i {
+	background-color: #4b93ff;
+}
+
+.layui-table-tool-panel span {
+	background-color: transparent !important;
+}
+
+.layui-form-onswitch,
+.layui-btn-primary:hover,
+.layui-laypage input:focus,
+.layui-laypage select:focus,
+.layui-form-checked[lay-skin="primary"] i {
+	border-color: #4b93ff !important;
+}
+
+.layui-form-checked i,
+.layui-form-checked:hover i,
+.layui-form-radio > i:hover,
+.layui-form-radioed > i,
+.layui-laypage a:hover {
+	color: #4b93ff;
+}
+
+.layui-btn-primary {
+	background-color: #fff;
+}
+
+.add-btn {
+	margin-right: 40px;
+}
+
+.cate_name_input {
+	height: 30px;
+	line-height: 30px;
+}
+
+.layui-btn-danger {
+	background-color: #ff5722;
+}
+
+.layui-table-fixed td .layui-table-cell {
+	height: 50px;
+	line-height: 50px;
+}
+
+.layui-table-cell {
+	height: auto;
+}
+
+.preview_img {
+	height: 100px;
+}
+
+.dp_img {
+	height: 50px;
+}
+
+.layui-anim.layui-anim-upbit {
+	z-index: 99999;
+}
+
+#charts {
+	display: flex;
+}
+
+#charts>div {
+	width: 550px;
+	height: 400px;
+}
+
+#upload {
+	position: relative;
+	margin: 40px auto 20px;
+	width: 80px;
+	height: 80px;
+	border-radius: 4px;
+	border: 1px solid #ccc;
+	overflow: hidden;
+}
+
+#upload #avatar {
+	position: absolute;
+	left: 50%;
+	transform: translateX(-50%);
+	height: 100%;
+}
+
+#upload #_upload_dp {
+	position: absolute;
+	right: 0;
+	bottom: 0;
+}
+
+#editpwdform {
+	padding: 30px 20px;
+}
+
+#editpwdform .layui-form-label {
+	width: 100px;
+}

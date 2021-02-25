@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>后台-文章管理-所有文章</title>
+    {{include "./common/link.html"}}
+    <link rel="stylesheet" href="/public/css/lightbox.css">
+</head>
+
+<body>
+    <div class="layui-layout layui-layout-admin">
+        <!-- header -->
+        {{include "./common/header.html"}}
+
+        <!-- side -->
+        {{include "./common/side.html"}}
+
+        <div class="layui-body">
+            <!-- 内容主体区域 -->
+            <div style="padding: 15px;">
+                <h2>
+                    <span>所有文章</span>
+                </h2>
+                <table class="layui-hide" id="test" lay-filter="test"></table>
+            </div>
+        </div>
+
+        <!-- footer -->
+        {{include "./common/footer.html"}}
+    </div>
+
+    {{include "./common/script.html"}}
+    <script src="/public/js/lightbox-plus-jquery.js"></script>
+    <script type="text/html" id="toolbarDemo">
+        <div class="demoTable">
+            <a class="layui-btn add-btn" title="添加文章" href="/art_add">
+                <i class="layui-icon">&#xe608;</i> 添加
+            </a>
+            标题
+            <div class="layui-inline" style="margin-right: 20px">
+              <input class="layui-input" name="id" id="art_title" autocomplete="off">
+            </div>
+            状态
+            <div class="layui-input-inline" style="margin-right: 10px">
+                <select name="category" lay-verify="required" id="status">
+                    <option value="">全部</option>
+                    <option value="0">已发布</option>
+                    <option value="1">待审核</option>
+                    <option value="2">不通过</option>
+                </select>
+            </div>
+            <button class="layui-btn" data-type="reload" id="searchbtn">搜索</button>
+        </div>
+    </script>
+    <!-- <script type="text/html" id="barDemo">
+        <div class="layui-btn-group">
+            <a class="layui-btn layui-btn-xs" lay-event="show">查看内容</a>
+            <a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
+            <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</i></a>
+        </div>
+    </script> -->
+
+    <script>
+        // 导航依赖 element 模块，表单依赖 form 模块，表格依赖 table 模块
+        layui.use(['element', 'layer', 'table'], function () {
+            let table = layui.table;
+            // 初始化文章
+            let tableInit = table.render({
+                elem: '#test',
+                url: '/getart',
+                toolbar: '#toolbarDemo', //开启头部工具栏，并为其绑定左侧模板
+                title: '文章数据表',
+                limit: 5,
+                limits: [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 100],
+                id: 'testReload',
+                cols: [
+                    [{
+                        field: 'art_title',
+                        title: '文章标题',
+                        // width: 200,
+                    }, {
+                        field: 'cover',
+                        title: '封面',
+                        width: 180,
+                        templet({ art_title, cover }) {
+                            let temStr = `<a class="example-image-link" href="${cover}" data-lightbox="example-1" data-title="${art_title}">
+                                <img class="example-image dp_img" src="${cover}" alt="加载中..." />
+                            </a>`;
+                            return temStr;
+                        }
+                    }, {
+                        field: 'author',
+                        title: '作者',
+                        width: 100,
+                        sort: true
+                    }, {
+                        field: 'cate_name',
+                        title: '所属分类',
+                        width: 100
+                    }, {
+                        field: 'status',
+                        title: '状态',
+                        width: 100,
+                        minWidth: 80,
+                        sort: true,
+                        templet(res) {
+                            let statusMaps = {
+                                0: "<span class='layui-badge layui-bg-blue'>已发布</span>",
+                                1: "<span class='layui-badge layui-bg-orange'>待审核</span>",
+                                2: "<span class='layui-badge' style='background-color:red'>不通过</span>",
+                            };
+                            return statusMaps[res.status];
+                        }
+                    }, {
+                        field: 'added_time',
+                        title: '添加时间',
+                        width: 190,
+                        sort: true,
+                        templet(res) {
+                            return util.data_format(res.added_time);
+                        }
+                    }, {
+                        fixed: 'right',
+                        title: '操作',
+                        width: 200,
+                        unresize: true,
+                        // toolbar: '#barDemo',
+                        templet({ status }) {
+                            let temStr = `<div class="layui-btn-group">
+                                <a class="layui-btn layui-btn-xs" lay-event="show">查看内容</a>
+                                <a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>`;
+                            if(status===1) {
+                                temStr += `<a class="layui-btn layui-btn-xs layui-bg-orange" lay-event="verify">审核</a>`;
+                            }
+                            temStr += `<a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</i></a></div>`;
+                            return temStr;
+                        }
+                    }]
+                ],
+                page: true
+            });
+
+            //监听行工具事件
+            table.on('tool(test)', function ({ data, event }) {
+                let { art_id, art_title, content, status } = data;
+                switch (event) {
+                    case 'show':
+                        show(art_title, content);
+                        break;
+                    case 'edit':
+                        edit(art_id, status);
+                        break;
+                    case 'unshelf':
+                        unshelf(art_id);
+                        break;
+                    case 'shelf':
+                        shelf(art_id);
+                        break;
+                    case 'verify':
+                        verify(art_id);
+                        break;
+                    case 'del':
+                        del(art_id);
+                        tableInit.reload();
+                        break;
+                }
+            });
+
+            $('.layui-body').on('click','#searchbtn', function () {
+                let art_title = $('#art_title').val();
+                let status = $('#status').val();
+                table.reload('testReload', {
+                    page: {
+                        curr: 1 //重新从第 1 页开始
+                    }
+                    , where: {
+                        art_title,
+                        status
+                    }
+                }, 'data');
+                $('#art_title').val(art_title);
+                $('#status').val(status);
+            });
+
+            function show(title, content) {
+                layer.open({
+                    type: 1,
+                    title: title,
+                    shadeClose: true,
+                    // maxmin: true, //开启最大化最小化按钮
+                    area: ['800px', '550px'],
+                    content: content //iframe的url，no代表不显示滚动条
+                });
+            }
+
+            function edit(art_id, status) {
+                location.href = `/art_edit?art_id=${art_id}&status=${status}`;
+            }
+
+            function del(art_id) {
+                layer.confirm('确定要删除该文章吗？', {
+                    btn: ['删除', '取消']
+                }, () => {
+                    $.ajax({
+                        type: 'post',
+                        url: '/delart',
+                        data: { art_id }
+                    }).then(({ code, message }) => {
+                        layer.closeAll();
+                        layer.msg(message);
+                        if (!code) tableInit.reload();
+                    });
+                });
+            }
+
+            function unshelf(art_id) {
+                layer.confirm('确定下架该文章吗？', {
+                    btn: ['确定', '取消']
+                }, () => {
+                    updStatus(art_id, 1);
+                });
+            }
+
+            function shelf(art_id) {
+                layer.confirm('确定发布该文章吗？', {
+                    btn: ['确定', '取消']
+                }, () => {
+                    updStatus(art_id, 0);
+                });
+            }
+
+            function verify(art_id) {
+                layer.confirm('是否通过审核？', {
+                    btn: ['通过', '不通过']
+                }, () => {
+                    updStatus(art_id, 0);
+                }, () => {
+                    updStatus(art_id, 3);
+                });
+            }
+
+            function updStatus(art_id, status) {
+                $.ajax({
+                    type: 'post',
+                    url: '/updstatus',
+                    data: { art_id, status }
+                }).then(res => {
+                    layer.closeAll();
+                    layer.msg(res.message);
+                    if (!res.code) tableInit.reload();
+                });
+            }
+        });
+    </script>
+</body>
+
+</html>

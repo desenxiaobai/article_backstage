@@ -1,0 +1,171 @@
+<div class="layui-header">
+    <div class="layui-logo" id="logo">DL&QZL</div>
+    <ul class="layui-nav layui-layout-left">
+        <li class="layui-nav-item layui-this"><a href="/index">控制台</a></li>
+        <li class="layui-nav-item"><a href="javascript:;">文章管理</a></li>
+        <li class="layui-nav-item"><a href="javascript:;">大数据</a></li>
+        <li class="layui-nav-item">
+            <a href="javascript:;">系统管理</a>
+            <dl class="layui-nav-child">
+                <!-- 二级菜单 -->
+                <dd><a href="javascript:;">邮件管理</a></dd>
+                <dd><a href="javascript:;">消息管理</a></dd>
+                <dd><a href="javascript:;">授权管理</a></dd>
+            </dl>
+        </li>
+    </ul>
+    <ul class="layui-nav layui-layout-right">
+        <li class="layui-nav-item">
+            <a href="javascript:;">个人中心<span class="layui-badge-dot"></span></a>
+        </li>
+        <li class="layui-nav-item">
+            <a href="javascript:;" id="user"></a>
+            <dl class="layui-nav-child">
+                <dd><a href="javascript:;" id="editinfo">修改资料</a></dd>
+                <dd><a href="javascript:;" id="editpwd">重置密码</a></dd>
+                <dd><a href="javascript:;" id="logout">退出</a></dd>
+            </dl>
+        </li>
+    </ul>
+</div>
+
+<script>
+    window.onload = function () {
+        layui.use(['layer', 'upload', 'form'], function () {
+            let upload = layui.upload;
+            let form = layui.form;
+
+            let username = localStorage.username;
+            let userHtml = `<img src="${localStorage.getItem('avatar')}" class="layui-nav-img">
+                    ${localStorage.getItem('username')}`;
+            $('#user').html(userHtml);
+            $('#logout').on('click', function () {
+                layer.confirm('确认退出登录吗？', {
+                    btn: ['退出', '取消'] //按钮
+                }, function () {
+                    $.get('/logout', res => {
+                        localStorage.clear();
+                        layer.msg('退出成功');
+                        location.href = '/login';
+                    });
+                });
+            });
+
+            $('#editinfo').on('click', function () {
+                let avatar = localStorage.avatar;
+                let nickname = localStorage.nickname;
+                layer.open({
+                    type: 1,
+                    title: '个人资料',
+                    area: ['360px', '480px'], //宽高
+                    content: `<form class="layui-form">
+                        <div id="upload">
+                            <img src="${avatar}" id="avatar" />
+                            <a href="javascript:;" id="_upload_dp" title="上传头像">
+                                <i class="layui-icon">&#xe67c;</i>
+                            </a>
+                            <input type="hidden" name="avatar" value="${avatar}" id="_avatar">
+                        </div>
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">用户名</label>
+                            <div style="padding: 9px 0; color: #999;">${username}</div>
+                        </div>
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">昵称</label>
+                            <div class="layui-input-inline">
+                                <input type="text" name="nickname" autocomplete="off" class="layui-input" value="${nickname}">
+                            </div>
+                        </div>
+                        <div class="layui-form-item" style="margin-top: 40px">
+                            <div class="layui-input-block">
+                                <button class="layui-btn" lay-submit lay-filter="formedituser">保存</button>
+                            </div>
+                        </div>
+                    </form>`
+                });
+                upload.render({
+                    elem: '#_upload_dp' //绑定元素
+                    , url: '/upload' //上传接口
+                    , data: {
+                        oldFile() {
+                            return $('#_avatar').val();
+                        }
+                    }
+                    , done: function ({ message, src }) {
+                        //上传完毕回调
+                        if (!src) return layer.msg(message);
+                        $('#avatar').attr('src', src);
+                        $('#_avatar').val(src);
+                    }
+                });
+                form.on('submit(formedituser)', function ({ elem, field }) {
+                    let oldHtml = $(elem).html();
+                    $(elem).addClass('layui-btn-disabled').html('保存中...');
+                    $.ajax({
+                        type: 'post',
+                        url: '/edit_user',
+                        data: { ...field, username }
+                    }).then(res => {
+                        $(elem).removeClass('layui-btn-disabled').html(oldHtml);
+                        layer.msg(res.message);
+                        if (!res.code) location.reload();
+                    });
+                    return false;
+                });
+            });
+
+            $('#editpwd').on('click', function () {
+                layer.open({
+                    type: 1,
+                    title: '重置密码',
+                    area: ['400px', '330px'], //宽高
+                    content: `<form class="layui-form" id="editpwdform">
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">请输入原密码</label>
+                            <div class="layui-input-inline">
+                                <input type="password" name="password" autocomplete="off" class="layui-input">
+                            </div>
+                        </div>
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">设置新的密码</label>
+                            <div class="layui-input-inline">
+                                <input type="password" name="newpwd" autocomplete="off" class="layui-input">
+                            </div>
+                        </div>
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">重复新的密码</label>
+                            <div class="layui-input-inline">
+                                <input type="password" name="renewpwd" autocomplete="off" class="layui-input">
+                            </div>
+                        </div>
+                        <div class="layui-form-item" style="margin-top: 30px">
+                            <div class="layui-input-block" style="margin: 0; text-align: center;">
+                                <button class="layui-btn" lay-submit lay-filter="formeditpwd">确定</button>
+                            </div>
+                        </div>
+                    </form>`
+                });
+                form.on('submit(formeditpwd)', function ({ elem, field }) {
+                    let newpwd = $('input[name="newpwd"]').val().trim();
+                    let renewpwd = $('input[name="renewpwd"]').val().trim();
+                    if (renewpwd !== newpwd) {
+                        layer.msg('重复密码不一致');
+                        return false;
+                    }
+                    let oldHtml = $(elem).html();
+                    $(elem).addClass('layui-btn-disabled').html('重置中...');
+                    $.ajax({
+                        type: 'post',
+                        url: '/edit_user_pwd',
+                        data: { ...field, username }
+                    }).then(res => {
+                        $(elem).removeClass('layui-btn-disabled').html(oldHtml);
+                        layer.msg(res.message);
+                        if (!res.code) location.reload();
+                    });
+                    return false;
+                });
+            });
+        });
+    };
+</script>
