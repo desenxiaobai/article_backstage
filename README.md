@@ -1,6 +1,6 @@
 ## 项目说明
 
-这是一个基于express、layui框架开发的**商品后台管理系统**。
+这是一个基于express、layui框架开发的**文章后台管理系统**。
 
 使用的技术：express、layui、jquery等。
 
